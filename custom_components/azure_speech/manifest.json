@@ -1,0 +1,10 @@
+{
+    "domain": "azure_speech",
+    "name": "Azure Cognitive Services",
+    "documentation": "https://example.com",
+    "version": "0.0.6",
+    "requirements": ["azure-cognitiveservices-speech==1.20.0"],
+    "codeowners": [],
+    "iot_class": "cloud_push",
+    "loggers": []
+  }
