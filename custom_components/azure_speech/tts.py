@@ -182,6 +182,8 @@ class AzureSpeechProvider(Provider):
             content_type = 'pcm'
         else:
             content_type = 'pcm'
+        _LOGGER.debug("Sending TTS for format %s with content type=%s, language=%s, voice=%s",
+            output_format, content_type, language, voice_name)
         speech_config.set_speech_synthesis_output_format(
             speechsdk.SpeechSynthesisOutputFormat[output_format])
 
