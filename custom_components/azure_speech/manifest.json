@@ -3,7 +3,7 @@
   "name": "Azure Speech Services",
   "documentation": "https://example.com",
   "version": "0.0.1",
-  "requirements": ["azure_cognitiveservices_speech"],
+  "requirements": ["azure_cognitiveservices_speech==1.33.0"],
   "codeowners": [],
   "iot_class": "cloud_push",
   "loggers": ["azure_cognitiveservices_speech"]
