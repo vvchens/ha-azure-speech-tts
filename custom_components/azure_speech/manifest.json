@@ -3,8 +3,8 @@
   "name": "Azure Speech Services",
   "documentation": "https://example.com",
   "version": "0.0.1",
-  "requirements": ["pycsspeechtts==1.0.8"],
+  "requirements": ["azure_cognitiveservices_speech"],
   "codeowners": [],
   "iot_class": "cloud_push",
-  "loggers": ["pycsspeechtts"]
+  "loggers": ["azure_cognitiveservices_speech"]
 }

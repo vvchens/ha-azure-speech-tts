@@ -1,53 +1,27 @@
 """Support for the Microsoft Cognitive Services text-to-speech service."""
 import logging
 
-from pycsspeechtts import pycsspeechtts
+import azure.cognitiveservices.speech as speechsdk
+
 from requests.exceptions import HTTPError
 import voluptuous as vol
 
-from homeassistant.components.tts import CONF_LANG, PLATFORM_SCHEMA
-from homeassistant.components.microsoft.tts import MicrosoftProvider
-from homeassistant.const import CONF_API_KEY, CONF_REGION, CONF_TYPE, PERCENTAGE
-# from homeassistant.generated.microsoft_tts import SUPPORTED_LANGUAGES
+from homeassistant.components.tts import PLATFORM_SCHEMA
+from homeassistant.components.tts import Provider
+from homeassistant.const import CONF_API_KEY, CONF_REGION
 import homeassistant.helpers.config_validation as cv
 
-CONF_GENDER = "gender"
-CONF_OUTPUT = "output"
-CONF_RATE = "rate"
-CONF_VOLUME = "volume"
-CONF_PITCH = "pitch"
-CONF_CONTOUR = "contour"
-CONF_ENDPOINT = "end_point"
+CONF_PATH = "path"
 _LOGGER = logging.getLogger(__name__)
 
-GENDERS = ["Female", "Male"]
-
-DEFAULT_LANG = "en-us"
-DEFAULT_GENDER = "Female"
-DEFAULT_TYPE = "JennyNeural"
-DEFAULT_OUTPUT = "audio-24khz-96kbitrate-mono-mp3"
-DEFAULT_RATE = 0
-DEFAULT_VOLUME = 0
-DEFAULT_PITCH = "default"
-DEFAULT_CONTOUR = ""
 DEFAULT_REGION = "eastus"
+
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_API_KEY): cv.string,
-        vol.Optional(CONF_LANG, default=DEFAULT_LANG): vol.In({"zh-cn"}),
-        vol.Optional(CONF_GENDER, default=DEFAULT_GENDER): vol.In(GENDERS),
-        vol.Optional(CONF_TYPE, default=DEFAULT_TYPE): cv.string,
-        vol.Optional(CONF_RATE, default=DEFAULT_RATE): vol.All(
-            vol.Coerce(int), vol.Range(-100, 100)
-        ),
-        vol.Optional(CONF_VOLUME, default=DEFAULT_VOLUME): vol.All(
-            vol.Coerce(int), vol.Range(-100, 100)
-        ),
-        vol.Optional(CONF_PITCH, default=DEFAULT_PITCH): cv.string,
-        vol.Optional(CONF_CONTOUR, default=DEFAULT_CONTOUR): cv.string,
+        vol.Required(CONF_PATH): cv.string,
         vol.Optional(CONF_REGION, default=DEFAULT_REGION): cv.string,
-        vol.Optional(CONF_ENDPOINT, default=None): cv.string,
     }
 )
 
@@ -56,77 +30,42 @@ def get_engine(hass, config, discovery_info=None):
     """Set up Microsoft speech component."""
     return CustomMicrosoftProvider(
         config[CONF_API_KEY],
-        config[CONF_LANG],
-        config[CONF_GENDER],
-        config[CONF_TYPE],
-        config[CONF_RATE],
-        config[CONF_VOLUME],
-        config[CONF_PITCH],
-        config[CONF_CONTOUR],
+        config[CONF_PATH],
         config[CONF_REGION],
-        config[CONF_ENDPOINT],
     )
 
 
-class CustomMicrosoftProvider(MicrosoftProvider):
+class CustomMicrosoftProvider(Provider):
     """The Microsoft speech API provider."""
 
     def __init__(
-        self, apikey, lang, gender, ttype, rate, volume, pitch, contour, region, url
+        self, apikey, path, region
     ):
         """Init Microsoft TTS service."""
         self._apikey = apikey
-        self._lang = lang
-        self._gender = gender
-        self._type = ttype
-        self._output = DEFAULT_OUTPUT
-        self._rate = f"{rate}{PERCENTAGE}"
-        self._volume = f"{volume}{PERCENTAGE}"
-        self._pitch = pitch
-        self._contour = contour
+        self._path = path
         self._region = region
-        self._url = url
         self.name = "Custom Microsoft"
+        
+        speech_config = speechsdk.SpeechConfig(subscription=apikey, region=region)
+        audio_config = speechsdk.audio.AudioOutputConfig(filename=path)
+        # speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
 
-    @property
-    def default_language(self):
-        """Return the default language."""
-        return self._lang
-
-    @property
-    def supported_languages(self):
-        """Return list of supported languages."""
-        return SUPPORTED_LANGUAGES
-
-    @property
-    def supported_options(self):
-        """Return list of supported options like voice, emotion."""
-        return [CONF_GENDER, CONF_TYPE]
-
-    @property
-    def default_options(self):
-        """Return a dict include default options."""
-        return {CONF_GENDER: self._gender, CONF_TYPE: self._type}
+        # The language of the voice that speaks.
+        speech_config.speech_synthesis_voice_name='zh-CN-XiaoxiaoNeural'
+        speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3)
+        self._sdk = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
 
     def get_tts_audio(self, message, language, options):
         """Load TTS from Microsoft."""
-        if language is None:
-            language = self._lang
-
-        try:
-            trans = pycsspeechtts.TTSTranslator(self._apikey, self._region, False if self._url is None else True, self._url)
-            data = trans.speak(
-                language=language,
-                gender=options[CONF_GENDER],
-                voiceType=options[CONF_TYPE],
-                output=self._output,
-                rate=self._rate,
-                volume=self._volume,
-                pitch=self._pitch,
-                contour=self._contour,
-                text=message,
-            )
-        except HTTPError as ex:
-            _LOGGER.error("Error occurred for Microsoft TTS: %s", ex)
-            return (None, None)
-        return ("mp3", data)
+        speech_synthesis_result = self._sdk.speak_text_async(message).get()
+        if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+            return True
+        elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
+            cancellation_details = speech_synthesis_result.cancellation_details
+            _LOGGER.error("Speech synthesis canceled: {}".format(cancellation_details.reason))
+            if cancellation_details.reason == speechsdk.CancellationReason.Error:
+                if cancellation_details.error_details:
+                    _LOGGER.error("Error details: {}".format(cancellation_details.error_details))
+                    _LOGGER.error("Did you set the speech resource key and region values?")
+            return False
