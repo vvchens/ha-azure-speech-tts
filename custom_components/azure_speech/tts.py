@@ -8,7 +8,7 @@ import voluptuous as vol
 from homeassistant.components.tts import CONF_LANG, PLATFORM_SCHEMA
 from homeassistant.components.microsoft.tts import MicrosoftProvider
 from homeassistant.const import CONF_API_KEY, CONF_REGION, CONF_TYPE, PERCENTAGE
-from homeassistant.generated.microsoft_tts import SUPPORTED_LANGUAGES
+# from homeassistant.generated.microsoft_tts import SUPPORTED_LANGUAGES
 import homeassistant.helpers.config_validation as cv
 
 CONF_GENDER = "gender"
@@ -35,7 +35,7 @@ DEFAULT_REGION = "eastus"
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_API_KEY): cv.string,
-        vol.Optional(CONF_LANG, default=DEFAULT_LANG): vol.In(SUPPORTED_LANGUAGES),
+        vol.Optional(CONF_LANG, default=DEFAULT_LANG): vol.In({"zh-cn"}),
         vol.Optional(CONF_GENDER, default=DEFAULT_GENDER): vol.In(GENDERS),
         vol.Optional(CONF_TYPE, default=DEFAULT_TYPE): cv.string,
         vol.Optional(CONF_RATE, default=DEFAULT_RATE): vol.All(
