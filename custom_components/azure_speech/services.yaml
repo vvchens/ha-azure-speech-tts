@@ -1,0 +1,14 @@
+generate:
+  target:
+    entity:
+      domain: tts
+  fields:
+    message:
+      example: "My name is hanna"
+      required: true
+      selector:
+        text:
+    cache:
+      default: true
+      selector:
+        boolean:
