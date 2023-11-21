@@ -1,10 +1,10 @@
 {
-  "domain": "azure_speech",
-  "name": "Azure Speech Services",
+  "domain": "mytts",
+  "name": "My TTS Services",
   "documentation": "https://example.com",
   "version": "0.0.1",
-  "requirements": ["azure_cognitiveservices_speech==1.33.0"],
+  "requirements": [""],
   "codeowners": [],
   "iot_class": "cloud_push",
-  "loggers": ["azure_cognitiveservices_speech"]
+  "loggers": [""]
 }
