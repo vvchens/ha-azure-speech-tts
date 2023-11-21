@@ -136,8 +136,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                             response.status,
                             payload,
                         )
+                        #content = await response.read()
                         with open(path, "wb") as f:
-                            f.write(response.content)
+                            # 逐块写入文件
+                            async for chunk in response.content.iter_any():
+                                f.write(chunk)
                     else:
                         _LOGGER.warning(
                             "Error. Url: %s. Status code %d. Payload: %s",
