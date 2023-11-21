@@ -108,6 +108,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 variables=service.data, parse_result=False
             )
 
+            message = service.data.get("message")
+
             headers = None
             if template_headers:
                 headers = {}
@@ -123,7 +125,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
             try:
                 async with getattr(websession, method)(
-                    request_url,
+                    request_url + message,
                     data=payload,
                     auth=auth,
                     headers=headers,
@@ -160,7 +162,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 )
 
         # register services
-        hass.services.async_register(DOMAIN, name, async_service_handler)
+        hass.services.async_register(DOMAIN, name, async_service_handler,
+                                     schema=vol.Schema({
+                                         vol.Required("message"): str
+                                     }))
 
     for name, command_config in config[DOMAIN].items():
         async_register_rest_command(name, command_config)
