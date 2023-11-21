@@ -1,5 +1,5 @@
 {
-  "domain": "mytts",
+  "domain": "custom_rest_command",
   "name": "My TTS Services",
   "documentation": "https://example.com",
   "version": "0.0.1",
