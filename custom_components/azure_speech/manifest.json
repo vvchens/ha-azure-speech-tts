@@ -3,8 +3,8 @@
   "name": "My TTS Services",
   "documentation": "https://example.com",
   "version": "0.0.1",
-  "requirements": [""],
+  "requirements": [],
   "codeowners": [],
   "iot_class": "cloud_push",
-  "loggers": [""]
+  "loggers": []
 }
