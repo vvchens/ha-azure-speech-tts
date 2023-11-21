@@ -23,7 +23,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-DOMAIN = "custom_rest_command"
+DOMAIN = "azure_speech"
 
 _LOGGER = logging.getLogger(__name__)
 
