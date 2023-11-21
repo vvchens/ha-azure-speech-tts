@@ -1,2 +1,8 @@
 azure_speech:
   name: "Custom RESTful Command"
+  fields:
+    message:
+      example: "My name is hanna"
+      required: true
+      selector:
+        text:
